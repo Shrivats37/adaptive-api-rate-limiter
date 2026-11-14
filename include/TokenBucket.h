@@ -2,6 +2,8 @@
 #include <chrono>
 #include <mutex>
 #include <algorithm>
+#include <atomic>
+#include <cstdint>
 
 class TokenBucket {
 private:
@@ -10,6 +12,8 @@ private:
     double tokens;
     std::chrono::steady_clock::time_point last_refill;
     std::mutex mtx;
+    std::atomic<std::uint64_t> allowed_count{0};
+    std::atomic<std::uint64_t> blocked_count{0};
 
     void refill() {
         auto now = std::chrono::steady_clock::now();
@@ -23,13 +27,17 @@ public:
         : capacity(cap), refill_rate(rate), tokens(cap), last_refill(std::chrono::steady_clock::now()) {}
 
     bool consume(double tokens_to_consume = 1.0) {
+        bool ok;
+    {
         std::lock_guard<std::mutex> lock(mtx);
         refill();
-        if (tokens >= tokens_to_consume) {
-            tokens -= tokens_to_consume;
-            return true;
-        }
-        return false;
+        ok = tokens >= tokens_to_consume;
+        if (ok) tokens -= tokens_to_consume;
+    }   // lock yahan khatam, mutex release ho gaya
+
+    if (ok) allowed_count.fetch_add(1, std::memory_order_relaxed);
+    else    blocked_count.fetch_add(1, std::memory_order_relaxed);
+    return ok;
     }
 
     void adapt_parameters(double risk_score) {
@@ -47,4 +55,7 @@ public:
         }
         tokens = std::min(tokens, capacity);
     }
+
+    std::uint64_t allowed() const { return allowed_count.load(std::memory_order_relaxed); }
+    std::uint64_t blocked() const { return blocked_count.load(std::memory_order_relaxed); }
 };
