@@ -1,2 +1,4 @@
 test_ring
 test_threads
+build/
+.DS_Store
