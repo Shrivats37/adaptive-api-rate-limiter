@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
+# One entry point for everything. Usage: ./dev.sh {build|test|demo|bench|server|train|clean}
 set -e
 cd "$(dirname "$0")"
 
-build()   { mkdir -p build && (cd build && cmake -G "Unix Makefiles" .. > /dev/null && make); }
-ring()    { g++ -std=c++17 -Iinclude test_ring.cpp -o test_ring && ./test_ring; }
-threads() { g++ -std=c++17 -O2 -pthread -Iinclude test_threads.cpp -o test_threads && ./test_threads; }
+build() { cmake -S . -B build -DCMAKE_BUILD_TYPE=Release > /dev/null && cmake --build build -j 4; }
 
 case "$1" in
-  build)   build ;;
-  run)     build && ./build/rate_limiter_app ;;
-  ring)    ring ;;
-  threads) threads ;;
-  test)    ring && threads ;;
-  clean)   rm -rf build test_ring test_threads ;;
-  *)       echo "Usage: ./dev.sh {build|run|ring|threads|test|clean}" ;;
+  build)  build ;;
+  test)   build && ./build/test_all ;;
+  demo)   build && ./build/rate_limiter_demo ;;
+  bench)  build && ./build/rate_limiter_bench ;;
+  server) build && ./build/rate_limiter_server ;;
+  train)  python3 tools/train_model.py ;;
+  clean)  rm -rf build ;;
+  *)      echo "Usage: ./dev.sh {build|test|demo|bench|server|train|clean}" ;;
 esac

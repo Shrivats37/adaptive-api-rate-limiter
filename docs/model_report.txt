@@ -1,0 +1,11 @@
+Synthetic-data evaluation (held-out set of 20000 windows, different seed)
+Weights: gap_cv=-5.8478 payload_cv=-27.9045 top_endpoint_share=3.2715 bias=2.9360
+ROC AUC: 0.9992
+threshold 0.5  precision=0.965 recall=0.994 false-positive-rate=0.019
+threshold 0.7  precision=0.987 recall=0.967 false-positive-rate=0.007
+Per type, share flagged as high risk (> 0.7):
+  human_normal  (human)  flagged = 0.000
+  human_hasty   (human)  flagged = 0.028
+  bot_naive     (bot)    flagged = 1.000
+  bot_jittery   (bot)    flagged = 0.924
+  legit_poller  (human)   flagged = 1.000   <-- known weakness: regular but legitimate clients
