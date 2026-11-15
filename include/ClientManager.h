@@ -70,7 +70,7 @@ public:
 // clients rarely wait for each other.
 class ClientManager {
 private:
-    static constexpr std::size_t NUM_SHARDS = 16;
+    static constexpr std::size_t NUM_SHARDS = 256;
 
     struct Shard {
         mutable std::mutex mtx;
